@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "logistics/gen/payment/v1;paymentv1";
+
+service PaymentService {
+  // Called by shipment-service to learn whether a shipment is paid.
+  rpc GetPaymentStatus(GetPaymentStatusRequest) returns (PaymentStatus);
+}
+
+message GetPaymentStatusRequest { string tracking_number = 1; }
+
+message PaymentStatus {
+  string tracking_number = 1;
+  string status = 2; // PENDING | SUCCEEDED | FAILED | REFUNDED
+  int64 amount_minor = 3;
+  string currency = 4;
+}

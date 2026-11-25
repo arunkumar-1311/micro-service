@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package shipment.v1;
+
+option go_package = "logistics/gen/shipment/v1;shipmentv1";
+
+// Internal sync API. Used by payment-service / notification-service when
+// they need an immediate answer (events cover everything else).
+service ShipmentService {
+  rpc GetShipment(GetShipmentRequest) returns (Shipment);
+}
+
+message GetShipmentRequest { string tracking_number = 1; }
+
+message Shipment {
+  string id = 1;
+  string tracking_number = 2;
+  string customer_id = 3;
+  string recipient_phone = 4;
+  string status = 5;
+  double weight_kg = 6;
+}
