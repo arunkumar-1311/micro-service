@@ -9,6 +9,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ../migrations/shipment:/docker-entrypoint-initdb.d:ro
+      - ./initdb/10-payment-db.sh:/docker-entrypoint-initdb.d/10-payment-db.sh:ro
+      - ../migrations/payment:/migrations/payment:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U logistics"]
       interval: 5s
