@@ -10,8 +10,8 @@ pkg/                  shared libs: config, logger, resilience (retry/breaker), e
 services/
   gateway/            public edge: routing, request-id, per-upstream circuit breaker
   shipment/           domain → repository(interface) → service(interface) → handler
-  payment/            (planned) Stripe + webhook
-  notification/       (planned) Kafka consumer → SMS
+  payment/            Stripe intents + signed, idempotent webhook
+  notification/       Kafka consumer → Twilio SMS
 migrations/<svc>/     SQL per service (each service owns its DB)
 deploy/               docker-compose for local infra
 ```
@@ -26,9 +26,9 @@ Each service: `cmd/` (wiring only) and `internal/{domain,repository,service,hand
 | GET | `/api/v1/shipments/{tracking}` | shipment (Redis cache-aside) |
 | GET | `/api/v1/shipments/{tracking}/events` | shipment |
 | PATCH | `/api/v1/shipments/{tracking}/status` | shipment (state machine, emits Kafka event) |
-| POST | `/api/v1/payments/intents` | payment (planned) |
-| GET | `/api/v1/payments/{id}` | payment (planned) |
-| POST | `/api/v1/webhooks/stripe` | payment (planned) |
+| POST | `/api/v1/payments/intents` | payment |
+| GET | `/api/v1/payments/{id}` | payment |
+| POST | `/api/v1/webhooks/stripe` | payment |
 
 ## Run locally
 
@@ -36,5 +36,7 @@ Each service: `cmd/` (wiring only) and `internal/{domain,repository,service,hand
 docker compose -f deploy/docker-compose.yml up -d
 go mod tidy
 go run ./services/shipment/cmd     # :8081
+go run ./services/payment/cmd      # :8082 (needs STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
+go run ./services/notification/cmd # :8083 (TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER; logs SMS if unset)
 go run ./services/gateway/cmd      # :8080
 ```

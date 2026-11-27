@@ -14,6 +14,9 @@ type Cache interface {
 	Get(ctx context.Context, key string) ([]byte, error) // ErrMiss when absent
 	Set(ctx context.Context, key string, val []byte, ttl time.Duration) error
 	Delete(ctx context.Context, keys ...string) error
+	// SetNX stores val only if key is absent and reports whether it did.
+	// Used for idempotency claims.
+	SetNX(ctx context.Context, key string, val []byte, ttl time.Duration) (bool, error)
 }
 
 type Redis struct{ c *redis.Client }
@@ -34,6 +37,10 @@ func (r *Redis) Get(ctx context.Context, key string) ([]byte, error) {
 
 func (r *Redis) Set(ctx context.Context, key string, val []byte, ttl time.Duration) error {
 	return r.c.Set(ctx, key, val, ttl).Err()
+}
+
+func (r *Redis) SetNX(ctx context.Context, key string, val []byte, ttl time.Duration) (bool, error) {
+	return r.c.SetNX(ctx, key, val, ttl).Result()
 }
 
 func (r *Redis) Delete(ctx context.Context, keys ...string) error { return r.c.Del(ctx, keys...).Err() }
